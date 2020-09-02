@@ -182,7 +182,7 @@ void MAMACALLTYPE subscriber::destroyCB(mamaSubscription subscription, void* clo
    subscriber* pThis = dynamic_cast<subscriber*>(static_cast<subscriber*>(closure));
    if (pThis) {
       mamaSubscription_deallocate(pThis->sub_);
-      delete pThis;
+      ::operator delete(pThis);
    }
 }
 

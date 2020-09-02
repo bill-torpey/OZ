@@ -245,8 +245,16 @@ public:
    subscriber& operator=(const subscriber&) = delete;
    subscriber& operator=(subscriber&&) = delete;
 
-protected:
    virtual ~subscriber();
+
+   void operator delete(void* ptr)
+   {
+      subscriber* pObj = static_cast<subscriber*>(ptr);
+      pObj->destroy();
+   }
+
+
+protected:
 
    virtual void MAMACALLTYPE onCreate() {}
    virtual void MAMACALLTYPE onError(mama_status status, void* platformError, const char* subject) {}
@@ -268,11 +276,12 @@ private:
    wcType               wcType_        {wcType::unspecified};
 };
 
+/*
 auto subscriberDeleter = [](subscriber* pSubscriber)
 {
    pSubscriber->destroy();
 };
-
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // Represents a callback thread consisting of a queue and dispatcher
@@ -289,6 +298,7 @@ public:
    mamaQueue getQueue() const               { return queue_; }
    oz::connection* getConnection() const    { return pConn_; }
 
+/*
    template<typename... Ts>
    std::unique_ptr<subscriber, decltype(subscriberDeleter)> createSubscriber(Ts&&... args)
    {
@@ -296,6 +306,15 @@ public:
       pSubscriber.reset(new subscriber(this, std::forward<Ts>(args)...));
       return pSubscriber;
    }
+*/
+   template<typename... Ts>
+   std::unique_ptr<subscriber> createSubscriber(Ts&&... args)
+   {
+      unique_ptr<subscriber> pSubscriber(nullptr);
+      pSubscriber.reset(new subscriber(this, std::forward<Ts>(args)...));
+      return pSubscriber;
+   }
+
 
    template<typename... Ts>
    std::unique_ptr<request, decltype(requestDeleter)> createRequest(Ts&&... args)
